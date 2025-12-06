@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏴‍☠️ Treasure Hunt Maze - Adventure Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pirata+One&family=Roboto:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #2c1810 0%, #3d2817 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border: 4px solid #d4af37;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 3em;
+            font-family: 'Pirata One', cursive;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            letter-spacing: 2px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            border: 2px solid #d4af37;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .game-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            border: 2px solid #8b7355;
+        }
+
+        .game-stat-label {
+            font-size: 0.9em;
+            color: #d4af37;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-stat-value {
+            font-size: 2em;
+            color: #ffd700;
+            font-weight: bold;
+            font-family: 'Pirata One', cursive;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(139, 115, 85, 0.3);
+            border-radius: 15px;
+            border: 2px solid #8b7355;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #ffd700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        select, input, button {
+            padding: 12px 20px;
+            border: 3px solid #8b7355;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        button {
+            background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+            color: #2c1810;
+            border: 3px solid #8b7355;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.6);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
+        .power-ups {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .power-up-btn {
+            padding: 15px 25px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .power-up-btn.wall-breaker {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+        }
+
+        .power-up-btn.speed-boost {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+        }
+
+        .power-up-btn.pathfinder {
+            background: linear-gradient(135deg, #4dabf7 0%, #1c7ed6 100%);
+        }
+
+        .power-up-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ffd700;
+            color: #2c1810;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8em;
+            border: 2px solid #2c1810;
+        }
+
+        .grid-container {
+            display: inline-block;
+            border: 5px solid #d4af37;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            margin-bottom: 20px;
+            background: #1a1a1a;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1px;
+            background: #444;
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background: #f5deb3;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            border: 1px solid #d2b48c;
+        }
+
+        .cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .cell.wall {
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            border: 1px solid #444;
+        }
+
+        .cell.start {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .cell.start::after {
+            content: '🏴‍☠️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+        }
+
+        .cell.end {
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b6b 100%);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: treasurePulse 2s infinite;
+        }
+
+        .cell.end::after {
+            content: '💎';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            animation: treasureSpin 3s linear infinite;
+        }
+
+        @keyframes treasurePulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+            }
+        }
+
+        @keyframes treasureSpin {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .cell.mud {
+            background: linear-gradient(135deg, #8b7355 0%, #654321 100%);
+        }
+
+        .cell.coin {
+            background: #f5deb3;
+        }
+
+        .cell.coin::after {
+            content: '🪙';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2em;
+        }
+
+        .cell.visited {
+            background: linear-gradient(135deg, #ffa94d 0%, #fd7e14 100%);
+            animation: visited 0.3s;
+        }
+
+        .cell.path {
+            background: linear-gradient(135deg, #4dabf7 0%, #1c7ed6 100%);
+            animation: path 0.5s;
+        }
+
+        .cell.breaking {
+            animation: wallBreak 0.8s forwards;
+        }
+
+        @keyframes wallBreak {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            25% {
+                transform: scale(1.2) rotate(10deg);
+            }
+            50% {
+                transform: scale(0.9) rotate(-10deg);
+            }
+            75% {
+                transform: scale(1.1) rotate(5deg);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes visited {
+            from {
+                transform: scale(0.3);
+                background: #fff;
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes path {
+            0% {
+                transform: scale(0.6);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes collectCoin {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -200%) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .cell.path-bfs {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.9) 0%, rgba(41, 128, 185, 0.9) 100%);
+        }
+
+        .cell.path-dfs {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.9) 0%, rgba(192, 57, 43, 0.9) 100%);
+        }
+
+        .cell.path-dijkstra {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.9) 0%, rgba(142, 68, 173, 0.9) 100%);
+        }
+
+        .cell.path-astar {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.9) 0%, rgba(39, 174, 96, 0.9) 100%);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(139, 115, 85, 0.3);
+            border-radius: 15px;
+            border: 2px solid #8b7355;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 3px solid #8b7355;
+        }
+
+        .algorithm-switcher {
+            display: none;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(139, 115, 85, 0.3);
+            border-radius: 15px;
+            border: 2px solid #8b7355;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .algo-btn {
+            padding: 15px 30px;
+            border: 3px solid transparent;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .algo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .algo-btn.active {
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .algo-btn.bfs {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .algo-btn.dfs {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .algo-btn.dijkstra {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .algo-btn.astar {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .message {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: center;
+            border: 3px solid;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .message.info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            color: #0c5460;
+            border-color: #17a2b8;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .level-complete {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            padding: 50px;
+            border-radius: 20px;
+            border: 5px solid #8b7355;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: none;
+        }
+
+        .level-complete.show {
+            display: block;
+            animation: levelCompleteShow 0.5s forwards;
+        }
+
+        @keyframes levelCompleteShow {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .level-complete h2 {
+            font-family: 'Pirata One', cursive;
+            font-size: 3em;
+            color: #2c1810;
+            margin-bottom: 20px;
+        }
+
+        .level-complete-btn {
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 1.2em;
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            animation: particleFloat 2s forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .comparison-section {
+            margin-top: 30px;
+            display: none;
+            padding: 20px;
+            background: rgba(139, 115, 85, 0.3);
+            border-radius: 15px;
+            border: 2px solid #8b7355;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #8b7355;
+            color: #ffd700;
+        }
+
+        .comparison-table th {
+            background: rgba(212, 175, 55, 0.3);
+            font-weight: 700;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .winner {
+            background: rgba(46, 204, 113, 0.3) !important;
+            font-weight: bold;
+            box-shadow: inset 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        .chart-container {
+            margin-top: 20px;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .chart-label {
+            min-width: 100px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .chart-bar-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            height: 35px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #8b7355;
+        }
+
+        .chart-bar {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏴‍☠️ TREASURE HUNT MAZE 💎</h1>
+
+        <div class="game-header">
+            <div class="game-stat">
+                <div class="game-stat-label">Level</div>
+                <div class="game-stat-value" id="currentLevel">1</div>
+            </div>
+            <div class="game-stat">
+                <div class="game-stat-label">Score</div>
+                <div class="game-stat-value" id="score">0</div>
+            </div>
+            <div class="game-stat">
+                <div class="game-stat-label">Coins</div>
+                <div class="game-stat-value" id="coins">0</div>
+            </div>
+            <div class="game-stat">
+                <div class="game-stat-label">Time</div>
+                <div class="game-stat-value" id="timer">0s</div>
+            </div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>🎯 Algorithm:</label>
+                <select id="algorithm">
+                    <option value="BFS">BFS - Breadth First</option>
+                    <option value="DFS">DFS - Depth First</option>
+                    <option value="Dijkstra">Dijkstra - Shortest Path</option>
+                    <option value="AStar" selected>A* - Smart Search</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>⚡ Speed:</label>
+                <input type="range" id="speed" min="1" max="100" value="70">
+            </div>
+            <div class="power-ups">
+                <button class="power-up-btn wall-breaker" onclick="usePowerUp('wallBreaker')" id="wallBreakerBtn">
+                    💥 Wall Breaker
+                    <span class="power-up-count" id="wallBreakerCount">3</span>
+                </button>
+                <button class="power-up-btn speed-boost" onclick="usePowerUp('speedBoost')" id="speedBoostBtn">
+                    ⚡ Speed Boost
+                    <span class="power-up-count" id="speedBoostCount">2</span>
+                </button>
+                <button class="power-up-btn pathfinder" onclick="usePowerUp('pathfinder')" id="pathfinderBtn">
+                    🔮 Path Hint
+                    <span class="power-up-count" id="pathfinderCount">1</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="startLevel()">🎮 Start Level</button>
+            <button onclick="solveWithAlgorithm()" id="solveBtn">🏃 Find Treasure!</button>
+            <button onclick="compareAllAlgorithms()" id="compareBtn">📊 Compare Algorithms</button>
+            <button onclick="nextLevel()" id="nextLevelBtn" style="display: none;">➡️ Next Level</button>
+            <button onclick="resetGame()">🔄 Reset Game</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f5deb3;"></div>
+                <span>Empty Path</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2c2c2c;"></div>
+                <span>Wall</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #51cf66;"></div>
+                <span>🏴‍☠️ Start</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffd700;"></div>
+                <span>💎 Treasure</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #8b7355;"></div>
+                <span>Mud (Slow)</span>
+            </div>
+            <div class="legend-item">
+                <span>🪙 Coins (+10)</span>
+            </div>
+        </div>
+
+        <div class="algorithm-switcher" id="algoSwitcher">
+            <p style="text-align: center; color: #ffd700; margin-bottom: 15px; width: 100%;">
+                💡 <strong>Quick Switch:</strong> Click buttons or press (1/B, 2/D, 3/J, 4/A)
+            </p>
+            <button class="algo-btn bfs" onclick="switchAlgorithm('BFS')" data-algo="BFS">BFS</button>
+            <button class="algo-btn dfs" onclick="switchAlgorithm('DFS')" data-algo="DFS">DFS</button>
+            <button class="algo-btn dijkstra" onclick="switchAlgorithm('Dijkstra')" data-algo="Dijkstra">Dijkstra</button>
+            <button class="algo-btn astar" onclick="switchAlgorithm('AStar')" data-algo="AStar">A*</button>
+        </div>
+
+        <div class="center">
+            <div class="grid-container">
+                <div class="grid" id="grid"></div>
+            </div>
+        </div>
+
+        <div class="comparison-section" id="comparisonSection">
+            <h2 style="color: #ffd700; margin-bottom: 20px; font-family: 'Pirata One', cursive;">📊 Algorithm Battle Results</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Path Length</th>
+                        <th>Total Cost</th>
+                        <th>Cells Visited</th>
+                        <th>Time (ms)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTableBody">
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h3 style="margin-bottom: 20px; color: #ffd700;">Performance Metrics</h3>
+                <div id="chartArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-complete" id="levelComplete">
+        <h2>🎉 LEVEL COMPLETE! 🎉</h2>
+        <p style="font-size: 1.5em; color: #2c1810; font-weight: bold;" id="levelCompleteMessage"></p>
+        <button class="level-complete-btn" onclick="proceedToNextLevel()">➡️ Next Level</button>
+    </div>
+
+    <script>
+        // Game state variables
+        let grid = [];
+        let rows = 10;
+        let cols = 15;
+        let startPos = null;
+        let endPos = null;
+        let currentLevel = 1;
+        let score = 0;
+        let coins = 0;
+        let timer = 0;
+        let timerInterval = null;
+        let comparisonResults = {};
+        let currentDisplayedAlgo = null;
+        
+        // Power-ups
+        let powerUps = {
+            wallBreaker: 3,
+            speedBoost: 2,
+            pathfinder: 1
+        };
+        
+        let activePowerUp = null;
+        let coinPositions = [];
+
+        // Level configurations
+        const levels = [
+            { name: "Training Grounds", walls: 0, mud: 0, coins: 5, size: { rows: 8, cols: 12 } },
+            { name: "Beginner's Path", walls: 10, mud: 0, coins: 8, size: { rows: 10, cols: 15 } },
+            { name: "Sandy Desert", walls: 15, mud: 10, coins: 10, size: { rows: 12, cols: 18 } },
+            { name: "Dark Forest", walls: 25, mud: 15, coins: 12, size: { rows: 14, cols: 20 } },
+            { name: "Mountain Pass", walls: 35, mud: 20, coins: 15, size: { rows: 15, cols: 22 } },
+            { name: "Pirate's Cove", walls: 45, mud: 25, coins: 18, size: { rows: 16, cols: 24 } },
+            { name: "Haunted Maze", walls: 55, mud: 30, coins: 20, size: { rows: 18, cols: 26 } },
+            { name: "Dragon's Lair", walls: 70, mud: 35, coins: 25, size: { rows: 20, cols: 28 } },
+            { name: "Ultimate Challenge", walls: 90, mud: 40, coins: 30, size: { rows: 22, cols: 30 } },
+            { name: "TREASURE ISLAND", walls: 120, mud: 50, coins: 50, size: { rows: 25, cols: 35 } }
+        ];
+
+        function startLevel() {
+            clearInterval(timerInterval);
+            timer = 0;
+            updateTimer();
+            
+            const level = levels[currentLevel - 1];
+            rows = level.size.rows;
+            cols = level.size.cols;
+            
+            createGrid();
+            generateLevelMaze(level);
+            
+            showMessage(`🎮 Level ${currentLevel}: ${level.name} - Find the treasure!`, 'info');
+            
+            timerInterval = setInterval(() => {
+                timer++;
+                updateTimer();
+            }, 1000);
+            
+            document.getElementById('nextLevelBtn').style.display = 'none';
+        }
+
+        function createGrid() {
+            grid = Array(rows).fill(0).map(() => Array(cols).fill(0));
+            startPos = null;
+            endPos = null;
+            coinPositions = [];
+            
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+            gridElement.style.gridTemplateColumns = `repeat(${cols}, 35px)`;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    gridElement.appendChild(cell);
+                }
+            }
+            
+            hideMessage();
+            document.getElementById('comparisonSection').style.display = 'none';
+            document.getElementById('algoSwitcher').style.display = 'none';
+        }
+
+        function generateLevelMaze(level) {
+            // Set start at top-left
+            startPos = [0, 0];
+            grid[0][0] = 2;
+            updateCellDisplay(0, 0);
+            
+            // Set end at bottom-right
+            endPos = [rows - 1, cols - 1];
+            grid[rows - 1][cols - 1] = 3;
+            updateCellDisplay(rows - 1, cols - 1);
+            
+            // Add random walls
+            let wallsAdded = 0;
+            while (wallsAdded < level.walls) {
+                const row = Math.floor(Math.random() * rows);
+                const col = Math.floor(Math.random() * cols);
+                
+                if (grid[row][col] === 0 && !isNearStartOrEnd(row, col, 2)) {
+                    grid[row][col] = 1;
+                    updateCellDisplay(row, col);
+                    wallsAdded++;
+                }
+            }
+            
+            // Add mud
+            let mudAdded = 0;
+            while (mudAdded < level.mud) {
+                const row = Math.floor(Math.random() * rows);
+                const col = Math.floor(Math.random() * cols);
+                
+                if (grid[row][col] === 0) {
+                    grid[row][col] = 5;
+                    updateCellDisplay(row, col);
+                    mudAdded++;
+                }
+            }
+            
+            // Add coins
+            let coinsAdded = 0;
+            while (coinsAdded < level.coins) {
+                const row = Math.floor(Math.random() * rows);
+                const col = Math.floor(Math.random() * cols);
+                
+                if (grid[row][col] === 0) {
+                    coinPositions.push([row, col]);
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    cell.classList.add('coin');
+                    coinsAdded++;
+                }
+            }
+        }
+
+        function isNearStartOrEnd(row, col, distance) {
+            return (Math.abs(row - startPos[0]) <= distance && Math.abs(col - startPos[1]) <= distance) ||
+                   (Math.abs(row - endPos[0]) <= distance && Math.abs(col - endPos[1]) <= distance);
+        }
+
+        function updateCellDisplay(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.className = 'cell';
+            
+            const value = grid[row][col];
+            if (value === 1) cell.classList.add('wall');
+            else if (value === 2) cell.classList.add('start');
+            else if (value === 3) cell.classList.add('end');
+            else if (value === 5) cell.classList.add('mud');
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').textContent = timer + 's';
+        }
+
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score').textContent = score;
+            createParticles('+' + points);
+        }
+
+        function collectCoin(row, col) {
+            const index = coinPositions.findIndex(([r, c]) => r === row && c === col);
+            if (index !== -1) {
+                coinPositions.splice(index, 1);
+                coins++;
+                updateScore(10);
+                document.getElementById('coins').textContent = coins;
+                
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                cell.classList.remove('coin');
+                
+                // Animate coin collection
+                const coinEmoji = document.createElement('div');
+                coinEmoji.textContent = '🪙';
+                coinEmoji.className = 'particle';
+                coinEmoji.style.left = cell.getBoundingClientRect().left + 'px';
+                coinEmoji.style.top = cell.getBoundingClientRect().top + 'px';
+                coinEmoji.style.fontSize = '2em';
+                document.body.appendChild(coinEmoji);
+                
+                setTimeout(() => coinEmoji.remove(), 2000);
+            }
+        }
+
+        function createParticles(text) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.textContent = text;
+            particle.style.left = '50%';
+            particle.style.top = '20%';
+            particle.style.fontSize = '2em';
+            particle.style.fontWeight = 'bold';
+            particle.style.color = '#ffd700';
+            document.body.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 2000);
+        }
+
+        async function solveWithAlgorithm() {
+            if (!startPos || !endPos) {
+                showMessage('Start the level first!', 'error');
+                return;
+            }
+            
+            clearSolution();
+            
+            const algorithm = document.getElementById('algorithm').value;
+            const solveBtn = document.getElementById('solveBtn');
+            solveBtn.disabled = true;
+            solveBtn.textContent = '🏃 Finding...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/solve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        algorithm: algorithm,
+                        grid: grid
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.solved) {
+                    await visualizeSolution(result);
+                    completeLevel(result);
+                    showMessage(`🎉 Treasure found using ${algorithm}!`, 'success');
+                } else {
+                    showMessage('❌ No path to treasure found!', 'error');
+                }
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+            
+            solveBtn.disabled = false;
+            solveBtn.textContent = '🏃 Find Treasure!';
+        }
+
+        async function visualizeSolution(result) {
+            const speed = 101 - parseInt(document.getElementById('speed').value);
+            
+            // Animate visited cells
+            for (const [row, col] of result.visited_order) {
+                if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    
+                    // Collect coin if present
+                    if (cell.classList.contains('coin')) {
+                        collectCoin(row, col);
+                    }
+                    
+                    cell.classList.add('visited');
+                    await sleep(speed);
+                }
+            }
+            
+            // Animate final path
+            if (result.solved) {
+                await sleep(200);
+                for (const [row, col] of result.path) {
+                    if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.remove('visited');
+                        cell.classList.add('path');
+                        await sleep(speed * 2);
+                    }
+                }
+            }
+        }
+
+        function completeLevel(result) {
+            clearInterval(timerInterval);
+            
+            // Calculate bonus
+            const timeBonus = Math.max(0, 100 - timer);
+            const pathEfficiency = Math.floor((result.visited_order.length / result.path.length) * 10);
+            const levelBonus = currentLevel * 50;
+            
+            const totalBonus = timeBonus + pathEfficiency + levelBonus;
+            updateScore(totalBonus);
+            
+            // Show level complete
+            const levelCompleteDiv = document.getElementById('levelComplete');
+            const messageDiv = document.getElementById('levelCompleteMessage');
+            messageDiv.innerHTML = `
+                <div style="margin: 20px 0;">
+                    💎 Treasure Found! 💎<br>
+                    🏆 Path Length: ${result.path.length}<br>
+                    ⏱️ Time: ${timer}s<br>
+                    🪙 Coins: ${coins}<br>
+                    ⭐ Bonus: +${totalBonus}<br>
+                    📊 Total Score: ${score}
+                </div>
+            `;
+            levelCompleteDiv.classList.add('show');
+            
+            document.getElementById('nextLevelBtn').style.display = 'inline-block';
+        }
+
+        function proceedToNextLevel() {
+            document.getElementById('levelComplete').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('levelComplete').style.display = 'none';
+            }, 300);
+            nextLevel();
+        }
+
+        function nextLevel() {
+            if (currentLevel < levels.length) {
+                currentLevel++;
+                document.getElementById('currentLevel').textContent = currentLevel;
+                
+                // Add power-ups every 3 levels
+                if (currentLevel % 3 === 0) {
+                    powerUps.wallBreaker += 2;
+                    powerUps.speedBoost += 1;
+                    powerUps.pathfinder += 1;
+                    updatePowerUpCounts();
+                    showMessage('🎁 Power-ups refilled!', 'success');
+                }
+                
+                startLevel();
+            } else {
+                showMessage('🏆 CONGRATULATIONS! You completed all levels! 🏆', 'success');
+            }
+        }
+
+        function resetGame() {
+            currentLevel = 1;
+            score = 0;
+            coins = 0;
+            timer = 0;
+            powerUps = {
+                wallBreaker: 3,
+                speedBoost: 2,
+                pathfinder: 1
+            };
+            
+            document.getElementById('currentLevel').textContent = currentLevel;
+            document.getElementById('score').textContent = score;
+            document.getElementById('coins').textContent = coins;
+            updatePowerUpCounts();
+            
+            clearInterval(timerInterval);
+            startLevel();
+        }
+
+        function usePowerUp(type) {
+            if (powerUps[type] <= 0) {
+                showMessage('❌ No more ' + type + ' power-ups!', 'error');
+                return;
+            }
+            
+            activePowerUp = type;
+            
+            if (type === 'wallBreaker') {
+                showMessage('💥 Wall Breaker activated! Click a wall to destroy it!', 'info');
+                enableWallBreaker();
+            } else if (type === 'speedBoost') {
+                showMessage('⚡ Speed Boost activated! Solving will be faster!', 'info');
+                document.getElementById('speed').value = 95;
+                powerUps[type]--;
+                updatePowerUpCounts();
+                activePowerUp = null;
+            } else if (type === 'pathfinder') {
+                showMessage('🔮 Path Hint activated! Watch the hint...', 'info');
+                showPathHint();
+                powerUps[type]--;
+                updatePowerUpCounts();
+                activePowerUp = null;
+            }
+        }
+
+        function enableWallBreaker() {
+            const cells = document.querySelectorAll('.cell.wall');
+            cells.forEach(cell => {
+                cell.style.cursor = 'crosshair';
+                cell.onclick = function() {
+                    if (activePowerUp === 'wallBreaker') {
+                        const row = parseInt(this.dataset.row);
+                        const col = parseInt(this.dataset.col);
+                        breakWall(row, col);
+                        powerUps.wallBreaker--;
+                        updatePowerUpCounts();
+                        activePowerUp = null;
+                        cells.forEach(c => {
+                            c.style.cursor = 'pointer';
+                            c.onclick = null;
+                        });
+                    }
+                };
+            });
+        }
+
+        function breakWall(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add('breaking');
+            
+            setTimeout(() => {
+                grid[row][col] = 0;
+                cell.classList.remove('wall', 'breaking');
+                showMessage('💥 Wall destroyed!', 'success');
+            }, 800);
+        }
+
+        async function showPathHint() {
+            try {
+                const response = await fetch('http://localhost:8080/solve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        algorithm: 'AStar',
+                        grid: grid
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.solved && result.path.length > 0) {
+                    // Show first 5 steps of the path
+                    const hintSteps = result.path.slice(0, Math.min(5, result.path.length));
+                    
+                    for (const [row, col] of hintSteps) {
+                        if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            cell.style.boxShadow = '0 0 20px #4dabf7';
+                            await sleep(300);
+                        }
+                    }
+                    
+                    // Clear hint after 3 seconds
+                    setTimeout(() => {
+                        hintSteps.forEach(([row, col]) => {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            cell.style.boxShadow = '';
+                        });
+                    }, 3000);
+                }
+            } catch (error) {
+                showMessage('Error showing hint: ' + error.message, 'error');
+            }
+        }
+
+        function updatePowerUpCounts() {
+            document.getElementById('wallBreakerCount').textContent = powerUps.wallBreaker;
+            document.getElementById('speedBoostCount').textContent = powerUps.speedBoost;
+            document.getElementById('pathfinderCount').textContent = powerUps.pathfinder;
+        }
+
+        function clearSolution() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    cell.classList.remove('visited', 'path', 'path-bfs', 'path-dfs', 'path-dijkstra', 'path-astar');
+                }
+            }
+            document.getElementById('algoSwitcher').style.display = 'none';
+            document.getElementById('comparisonSection').style.display = 'none';
+            comparisonResults = {};
+            currentDisplayedAlgo = null;
+        }
+
+        // Comparison functions (same as before but adapted)
+        async function compareAllAlgorithms() {
+            if (!startPos || !endPos) {
+                showMessage('Start the level first!', 'error');
+                return;
+            }
+            
+            clearSolution();
+            document.getElementById('comparisonSection').style.display = 'none';
+            
+            const compareBtn = document.getElementById('compareBtn');
+            compareBtn.disabled = true;
+            compareBtn.textContent = '⏳ Comparing...';
+            
+            const algorithms = ['BFS', 'DFS', 'Dijkstra', 'AStar'];
+            const results = {};
+            const speed = 101 - parseInt(document.getElementById('speed').value);
+            
+            showMessage('Running comparison for all algorithms...', 'info');
+            
+            for (const algo of algorithms) {
+                showMessage(`Running ${algo}...`, 'info');
+                
+                const startTime = performance.now();
+                
+                try {
+                    const response = await fetch('http://localhost:8080/solve', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            algorithm: algo,
+                            grid: grid
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    const endTime = performance.now();
+                    
+                    result.timeTaken = (endTime - startTime).toFixed(2);
+                    result.algorithm = algo;
+                    result.totalCost = calculatePathCost(result.path);
+                    
+                    results[algo] = result;
+                    
+                    await visualizeComparison(result, algo.toLowerCase(), speed);
+                    await sleep(300);
+                    
+                } catch (error) {
+                    showMessage('Error running ' + algo + ': ' + error.message, 'error');
+                }
+            }
+            
+            comparisonResults = results;
+            displayComparison(results);
+            
+            const firstAlgo = algorithms.find(algo => results[algo] && results[algo].solved);
+            if (firstAlgo) {
+                switchAlgorithm(firstAlgo);
+            }
+            
+            compareBtn.disabled = false;
+            compareBtn.textContent = '📊 Compare Algorithms';
+            showMessage('Comparison complete! Check results below.', 'success');
+        }
+
+        function calculatePathCost(path) {
+            let cost = 0;
+            for (const [row, col] of path) {
+                const cellValue = grid[row][col];
+                if (cellValue === 5) {
+                    cost += 5;
+                } else if (cellValue !== 2 && cellValue !== 3) {
+                    cost += 1;
+                }
+            }
+            return cost;
+        }
+
+        async function visualizeComparison(result, algoClass, speed) {
+            for (const [row, col] of result.visited_order) {
+                if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    cell.classList.add('visited');
+                    if (speed < 50) {
+                        await sleep(speed / 2);
+                    }
+                }
+            }
+            
+            await sleep(200);
+            clearVisitedOnly();
+        }
+
+        function clearVisitedOnly() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    cell.classList.remove('visited');
+                }
+            }
+        }
+
+        function switchAlgorithm(algo) {
+            if (!comparisonResults[algo]) return;
+            
+            currentDisplayedAlgo = algo;
+            const result = comparisonResults[algo];
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    cell.classList.remove('visited', 'path', 'path-bfs', 'path-dfs', 'path-dijkstra', 'path-astar');
+                }
+            }
+            
+            document.querySelectorAll('.algo-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.algo === algo) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            if (result.visited_order) {
+                for (const [row, col] of result.visited_order) {
+                    if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('visited');
+                    }
+                }
+            }
+            
+            if (result.solved && result.path) {
+                const algoClass = algo.toLowerCase();
+                for (const [row, col] of result.path) {
+                    if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.remove('visited');
+                        cell.classList.add(`path-${algoClass}`);
+                    }
+                }
+            }
+        }
+
+        function displayComparison(results) {
+            const tableBody = document.getElementById('comparisonTableBody');
+            const chartArea = document.getElementById('chartArea');
+            
+            tableBody.innerHTML = '';
+            chartArea.innerHTML = '';
+            
+            const algorithms = ['BFS', 'DFS', 'Dijkstra', 'AStar'];
+            const metrics = {
+                pathLength: { name: 'Path Length', values: [], lower: true },
+                totalCost: { name: 'Total Cost', values: [], lower: true },
+                visitedCount: { name: 'Cells Visited', values: [], lower: true },
+                timeTaken: { name: 'Time (ms)', values: [], lower: true }
+            };
+            
+            algorithms.forEach(algo => {
+                const result = results[algo];
+                if (result && result.solved) {
+                    metrics.pathLength.values.push({ algo, value: result.path.length });
+                    metrics.totalCost.values.push({ algo, value: result.totalCost });
+                    metrics.visitedCount.values.push({ algo, value: result.visited_order.length });
+                    metrics.timeTaken.values.push({ algo, value: parseFloat(result.timeTaken) });
+                }
+            });
+            
+            const winners = {};
+            Object.keys(metrics).forEach(key => {
+                const values = metrics[key].values;
+                if (values.length > 0) {
+                    const sorted = [...values].sort((a, b) => a.value - b.value);
+                    winners[key] = sorted[0].algo;
+                }
+            });
+            
+            algorithms.forEach(algo => {
+                const result = results[algo];
+                const row = document.createElement('tr');
+                
+                const algoColors = {
+                    'BFS': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+                    'DFS': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                    'Dijkstra': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+                    'AStar': 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)'
+                };
+                
+                if (result && result.solved) {
+                    row.innerHTML = `
+                        <td style="background: ${algoColors[algo]}; font-weight: bold;">${algo}</td>
+                        <td class="${winners.pathLength === algo ? 'winner' : ''}">${result.path.length} cells</td>
+                        <td class="${winners.totalCost === algo ? 'winner' : ''}">${result.totalCost} cost</td>
+                        <td class="${winners.visitedCount === algo ? 'winner' : ''}">${result.visited_order.length} cells</td>
+                        <td class="${winners.timeTaken === algo ? 'winner' : ''}">${result.timeTaken} ms</td>
+                        <td style="color: #2ecc71; font-weight: bold;">✓ Solved</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td style="background: ${algoColors[algo]}; font-weight: bold;">${algo}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td style="color: #e74c3c; font-weight: bold;">✗ No Solution</td>
+                    `;
+                }
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Build charts
+            Object.keys(metrics).forEach(key => {
+                const metric = metrics[key];
+                const maxValue = Math.max(...metric.values.map(v => v.value));
+                
+                const chartTitle = document.createElement('h4');
+                chartTitle.textContent = metric.name;
+                chartTitle.style.marginBottom = '10px';
+                chartTitle.style.color = '#ffd700';
+                chartArea.appendChild(chartTitle);
+                
+                metric.values.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'chart-row';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'chart-label';
+                    label.textContent = item.algo;
+                    
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'chart-bar-container';
+                    
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    const algoClass = item.algo.toLowerCase();
+                    
+                    const algoColors = {
+                        'bfs': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+                        'dfs': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                        'dijkstra': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+                        'astar': 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)'
+                    };
+                    
+                    bar.style.background = algoColors[algoClass];
+                    const percentage = (item.value / maxValue) * 100;
+                    bar.style.width = percentage + '%';
+                    bar.textContent = item.value;
+                    
+                    if (winners[key] === item.algo) {
+                        bar.style.boxShadow = '0 0 15px #ffd700';
+                        bar.style.border = '2px solid #ffd700';
+                    }
+                    
+                    barContainer.appendChild(bar);
+                    row.appendChild(label);
+                    row.appendChild(barContainer);
+                    chartArea.appendChild(row);
+                });
+                
+                const separator = document.createElement('div');
+                separator.style.marginBottom = '20px';
+                chartArea.appendChild(separator);
+            });
+            
+            document.getElementById('algoSwitcher').style.display = 'flex';
+            document.getElementById('comparisonSection').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('algoSwitcher').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 100);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (!comparisonResults || Object.keys(comparisonResults).length === 0) return;
+            
+            const key = e.key.toLowerCase();
+            if (key === '1' || key === 'b') switchAlgorithm('BFS');
+            else if (key === '2' || key === 'd') switchAlgorithm('DFS');
+            else if (key === '3' || key === 'j') switchAlgorithm('Dijkstra');
+            else if (key === '4' || key === 'a') switchAlgorithm('AStar');
+        });
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                hideMessage();
+            }, 5000);
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        // Initialize game
+        startLevel();
+    </script>
+</body>
+</html>
