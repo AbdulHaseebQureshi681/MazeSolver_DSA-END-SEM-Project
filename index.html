@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Solver Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        select, input, button {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        select:hover, input:hover {
+            border-color: #667eea;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .grid-container {
+            display: inline-block;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1px;
+            background: #ddd;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .cell.wall {
+            background: #2c3e50;
+        }
+
+        .cell.start {
+            background: #27ae60;
+        }
+
+        .cell.end {
+            background: #e74c3c;
+        }
+
+        .cell.mud {
+            background: #95a5a6;
+        }
+
+        .cell.visited {
+            background: #f39c12;
+            animation: visited 0.3s;
+        }
+
+        .cell.path {
+            background: #3498db;
+            animation: path 0.5s;
+        }
+
+        .cell.path-bfs {
+            background: rgba(52, 152, 219, 0.7);
+        }
+
+        .cell.path-dfs {
+            background: rgba(231, 76, 60, 0.7);
+        }
+
+        .cell.path-dijkstra {
+            background: rgba(155, 89, 182, 0.7);
+        }
+
+        .cell.path-astar {
+            background: rgba(46, 204, 113, 0.7);
+        }
+
+        .cell.path-overlay {
+            position: relative;
+        }
+
+        .path-marker {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0.8;
+        }
+
+        @keyframes visited {
+            from {
+                transform: scale(0.3);
+                background: #fff;
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes path {
+            0% {
+                transform: scale(0.6);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .comparison-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .algorithm-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .algo-btn {
+            padding: 15px 30px;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .algo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .algo-btn.active {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            transform: scale(1.05);
+        }
+
+        .algo-btn.bfs {
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+        }
+
+        .algo-btn.dfs {
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+        }
+
+        .algo-btn.dijkstra {
+            background: rgba(155, 89, 182, 0.9);
+            color: white;
+        }
+
+        .algo-btn.astar {
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+        }
+
+        .algo-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .comparison-table tr:hover {
+            background: #e9ecef;
+        }
+
+        .winner {
+            background: #d4edda !important;
+            font-weight: bold;
+            color: #155724;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .chart-label {
+            min-width: 100px;
+            font-weight: 600;
+        }
+
+        .chart-bar-container {
+            flex: 1;
+            background: #e9ecef;
+            border-radius: 5px;
+            height: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar {
+            height: 100%;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+        }
+
+        .chart-bar.bfs {
+            background: rgba(52, 152, 219, 0.9);
+        }
+
+        .chart-bar.dfs {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        .chart-bar.dijkstra {
+            background: rgba(155, 89, 182, 0.9);
+        }
+
+        .chart-bar.astar {
+            background: rgba(46, 204, 113, 0.9);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 Maze Solver Visualizer</h1>
+
+        <div class="message" id="message"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Grid Size (Rows):</label>
+                <input type="number" id="rows" value="15" min="5" max="30">
+            </div>
+            <div class="control-group">
+                <label>Grid Size (Columns):</label>
+                <input type="number" id="cols" value="20" min="5" max="40">
+            </div>
+            <div class="control-group">
+                <label>Draw Mode:</label>
+                <select id="drawMode">
+                    <option value="0">Empty</option>
+                    <option value="1" selected>Wall</option>
+                    <option value="2">Start</option>
+                    <option value="3">End</option>
+                    <option value="5">Mud (Cost: 5)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Algorithm:</label>
+                <select id="algorithm">
+                    <option value="BFS">BFS (Breadth-First)</option>
+                    <option value="DFS">DFS (Depth-First)</option>
+                    <option value="Dijkstra">Dijkstra</option>
+                    <option value="AStar">A* (A-Star)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Visualization Speed:</label>
+                <input type="range" id="speed" min="1" max="100" value="50">
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="createGrid()">Create New Grid</button>
+            <button onclick="clearGrid()">Clear Grid</button>
+            <button onclick="generateRandomMaze()">Generate Random Maze</button>
+            <button onclick="solveMaze()" id="solveBtn">Solve Maze</button>
+            <button onclick="compareAllAlgorithms()" id="compareBtn">🔍 Compare All Algorithms</button>
+            <button onclick="clearSolution()">Clear Solution</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: white;"></div>
+                <span>Empty (Cost: 1)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2c3e50;"></div>
+                <span>Wall (Blocked)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #27ae60;"></div>
+                <span>Start</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span>End</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #95a5a6;"></div>
+                <span>Mud (Cost: 5)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f39c12;"></div>
+                <span>Visited Cells</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <strong style="width: 100%; margin-bottom: 10px;">Algorithm-Specific Path Colors:</strong>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(52, 152, 219, 0.9);"></div>
+                <span>BFS Path</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(231, 76, 60, 0.9);"></div>
+                <span>DFS Path</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(155, 89, 182, 0.9);"></div>
+                <span>Dijkstra Path</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(46, 204, 113, 0.9);"></div>
+                <span>A* Path</span>
+            </div>
+        </div>
+
+        <div class="algorithm-switcher" id="algoSwitcher" style="display: none;">
+            <p style="text-align: center; color: #666; margin-bottom: 15px; width: 100%;">
+                💡 <strong>Quick Switch:</strong> Click buttons or use keyboard shortcuts (1/B, 2/D, 3/J, 4/A)
+            </p>
+            <button class="algo-btn bfs" onclick="switchAlgorithm('BFS')" data-algo="BFS">
+                BFS
+            </button>
+            <button class="algo-btn dfs" onclick="switchAlgorithm('DFS')" data-algo="DFS">
+                DFS
+            </button>
+            <button class="algo-btn dijkstra" onclick="switchAlgorithm('Dijkstra')" data-algo="Dijkstra">
+                Dijkstra
+            </button>
+            <button class="algo-btn astar" onclick="switchAlgorithm('AStar')" data-algo="AStar">
+                A*
+            </button>
+        </div>
+
+        <div class="center">
+            <div class="grid-container">
+                <div class="grid" id="grid"></div>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-value" id="pathLength">-</div>
+                <div class="stat-label">Path Length</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="visitedCount">-</div>
+                <div class="stat-label">Cells Visited</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="algorithm-used">-</div>
+                <div class="stat-label">Algorithm Used</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="status">-</div>
+                <div class="stat-label">Status</div>
+            </div>
+        </div>
+
+        <div class="comparison-section" id="comparisonSection">
+            <h2 style="color: #667eea; margin-bottom: 20px;">📊 Algorithm Comparison</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Path Length</th>
+                        <th>Total Cost</th>
+                        <th>Cells Visited</th>
+                        <th>Time (ms)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonTableBody">
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h3 style="margin-bottom: 20px; color: #667eea;">Performance Metrics</h3>
+                <div id="chartArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let grid = [];
+        let rows = 15;
+        let cols = 20;
+        let isDrawing = false;
+        let startPos = null;
+        let endPos = null;
+        let comparisonResults = {};
+        let currentDisplayedAlgo = null;
+
+        function createGrid() {
+            rows = parseInt(document.getElementById('rows').value);
+            cols = parseInt(document.getElementById('cols').value);
+            
+            grid = Array(rows).fill(0).map(() => Array(cols).fill(0));
+            startPos = null;
+            endPos = null;
+            
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+            gridElement.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    cell.addEventListener('mousedown', () => {
+                        isDrawing = true;
+                        toggleCell(i, j);
+                    });
+                    
+                    cell.addEventListener('mouseenter', () => {
+                        if (isDrawing) {
+                            toggleCell(i, j);
+                        }
+                    });
+                    
+                    cell.addEventListener('mouseup', () => {
+                        isDrawing = false;
+                    });
+                    
+                    gridElement.appendChild(cell);
+                }
+            }
+            
+            document.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+            
+            hideMessage();
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        function toggleCell(row, col) {
+            const drawMode = parseInt(document.getElementById('drawMode').value);
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            
+            // Remove start/end tracking if overwriting
+            if (grid[row][col] === 2) startPos = null;
+            if (grid[row][col] === 3) endPos = null;
+            
+            // Only allow one start and one end
+            if (drawMode === 2) {
+                if (startPos) {
+                    grid[startPos[0]][startPos[1]] = 0;
+                    updateCellDisplay(startPos[0], startPos[1]);
+                }
+                startPos = [row, col];
+            } else if (drawMode === 3) {
+                if (endPos) {
+                    grid[endPos[0]][endPos[1]] = 0;
+                    updateCellDisplay(endPos[0], endPos[1]);
+                }
+                endPos = [row, col];
+            }
+            
+            grid[row][col] = drawMode;
+            updateCellDisplay(row, col);
+        }
+
+        function updateCellDisplay(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.className = 'cell';
+            
+            const value = grid[row][col];
+            if (value === 1) cell.classList.add('wall');
+            else if (value === 2) cell.classList.add('start');
+            else if (value === 3) cell.classList.add('end');
+            else if (value === 5) cell.classList.add('mud');
+        }
+
+        function clearGrid() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    grid[i][j] = 0;
+                    updateCellDisplay(i, j);
+                }
+            }
+            startPos = null;
+            endPos = null;
+            hideMessage();
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        function clearSolution() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    cell.classList.remove('visited', 'path', 'path-bfs', 'path-dfs', 'path-dijkstra', 'path-astar', 'path-overlay');
+                }
+            }
+            document.getElementById('stats').style.display = 'none';
+            document.getElementById('algoSwitcher').style.display = 'none';
+            document.getElementById('comparisonSection').style.display = 'none';
+            comparisonResults = {};
+            currentDisplayedAlgo = null;
+            hideMessage();
+        }
+
+        function generateRandomMaze() {
+            clearGrid();
+            
+            // Set start at top-left, end at bottom-right
+            startPos = [0, 0];
+            endPos = [rows - 1, cols - 1];
+            grid[0][0] = 2;
+            grid[rows - 1][cols - 1] = 3;
+            updateCellDisplay(0, 0);
+            updateCellDisplay(rows - 1, cols - 1);
+            
+            // Add random walls and mud
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    if ((i === 0 && j === 0) || (i === rows - 1 && j === cols - 1)) continue;
+                    
+                    const rand = Math.random();
+                    if (rand < 0.25) {
+                        grid[i][j] = 1; // Wall
+                    } else if (rand < 0.35) {
+                        grid[i][j] = 5; // Mud
+                    }
+                    updateCellDisplay(i, j);
+                }
+            }
+        }
+
+        async function solveMaze() {
+            if (!startPos || !endPos) {
+                showMessage('Please set both start (green) and end (red) positions!', 'error');
+                return;
+            }
+            
+            clearSolution();
+            
+            const algorithm = document.getElementById('algorithm').value;
+            const solveBtn = document.getElementById('solveBtn');
+            solveBtn.disabled = true;
+            solveBtn.textContent = 'Solving...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/solve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        algorithm: algorithm,
+                        grid: grid
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.solved) {
+                    await visualizeSolution(result);
+                    showMessage(`Path found using ${algorithm}!`, 'success');
+                } else {
+                    showMessage('No path found!', 'error');
+                }
+                
+                // Update stats
+                document.getElementById('stats').style.display = 'flex';
+                document.getElementById('pathLength').textContent = result.path.length;
+                document.getElementById('visitedCount').textContent = result.visited_order.length;
+                document.getElementById('algorithm-used').textContent = algorithm;
+                document.getElementById('status').textContent = result.solved ? '✓ Solved' : '✗ Unsolved';
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+            
+            solveBtn.disabled = false;
+            solveBtn.textContent = 'Solve Maze';
+        }
+
+        async function visualizeSolution(result) {
+            const speed = 101 - parseInt(document.getElementById('speed').value);
+            
+            // Animate visited cells
+            for (const [row, col] of result.visited_order) {
+                if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    cell.classList.add('visited');
+                    await sleep(speed);
+                }
+            }
+            
+            // Animate final path
+            if (result.solved) {
+                await sleep(200);
+                for (const [row, col] of result.path) {
+                    if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.remove('visited');
+                        cell.classList.add('path');
+                        await sleep(speed * 2);
+                    }
+                }
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        async function compareAllAlgorithms() {
+            if (!startPos || !endPos) {
+                showMessage('Please set both start (green) and end (red) positions!', 'error');
+                return;
+            }
+            
+            clearSolution();
+            document.getElementById('comparisonSection').style.display = 'none';
+            
+            const compareBtn = document.getElementById('compareBtn');
+            compareBtn.disabled = true;
+            compareBtn.textContent = 'Comparing...';
+            
+            const algorithms = ['BFS', 'DFS', 'Dijkstra', 'AStar'];
+            const results = {};
+            const speed = 101 - parseInt(document.getElementById('speed').value);
+            
+            showMessage('Running comparison for all algorithms...', 'success');
+            
+            for (const algo of algorithms) {
+                showMessage(`Running ${algo}...`, 'success');
+                
+                const startTime = performance.now();
+                
+                try {
+                    const response = await fetch('http://localhost:8080/solve', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            algorithm: algo,
+                            grid: grid
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    const endTime = performance.now();
+                    
+                    result.timeTaken = (endTime - startTime).toFixed(2);
+                    result.algorithm = algo;
+                    result.totalCost = calculatePathCost(result.path);
+                    
+                    results[algo] = result;
+                    
+                    // Visualize this algorithm's exploration
+                    await visualizeComparison(result, algo.toLowerCase(), speed);
+                    
+                    await sleep(300);
+                    
+                } catch (error) {
+                    showMessage('Error running ' + algo + ': ' + error.message, 'error');
+                }
+            }
+            
+            // Store results for switching
+            comparisonResults = results;
+            
+            // Display comparison table and charts
+            displayComparison(results);
+            
+            // Show first available algorithm's path
+            const firstAlgo = algorithms.find(algo => results[algo] && results[algo].solved);
+            if (firstAlgo) {
+                switchAlgorithm(firstAlgo);
+            }
+            
+            compareBtn.disabled = false;
+            compareBtn.textContent = '🔍 Compare All Algorithms';
+            showMessage('Comparison complete! Check results below.', 'success');
+        }
+
+        function calculatePathCost(path) {
+            let cost = 0;
+            for (const [row, col] of path) {
+                const cellValue = grid[row][col];
+                if (cellValue === 5) {
+                    cost += 5;
+                } else if (cellValue !== 2 && cellValue !== 3) {
+                    cost += 1;
+                }
+            }
+            return cost;
+        }
+
+        async function visualizeComparison(result, algoClass, speed) {
+            // Quick visualization of visited cells
+            for (const [row, col] of result.visited_order) {
+                if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    cell.classList.add('visited');
+                    if (speed < 50) {
+                        await sleep(speed / 2);
+                    }
+                }
+            }
+            
+            // Clear visited for next algorithm
+            await sleep(200);
+            clearVisitedOnly();
+        }
+
+        function clearVisitedOnly() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    cell.classList.remove('visited');
+                }
+            }
+        }
+
+        function switchAlgorithm(algo) {
+            if (!comparisonResults[algo]) return;
+            
+            currentDisplayedAlgo = algo;
+            const result = comparisonResults[algo];
+            
+            // Clear all algorithm paths
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    cell.classList.remove('visited', 'path', 'path-bfs', 'path-dfs', 'path-dijkstra', 'path-astar');
+                }
+            }
+            
+            // Update button states
+            document.querySelectorAll('.algo-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.algo === algo) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Show visited cells
+            if (result.visited_order) {
+                for (const [row, col] of result.visited_order) {
+                    if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add('visited');
+                    }
+                }
+            }
+            
+            // Show path with algorithm-specific color
+            if (result.solved && result.path) {
+                const algoClass = algo.toLowerCase();
+                for (const [row, col] of result.path) {
+                    if (grid[row][col] !== 2 && grid[row][col] !== 3) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.remove('visited');
+                        cell.classList.add(`path-${algoClass}`);
+                    }
+                }
+            }
+            
+            // Update stats display
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('pathLength').textContent = result.path ? result.path.length : '-';
+            document.getElementById('visitedCount').textContent = result.visited_order ? result.visited_order.length : '-';
+            document.getElementById('algorithm-used').textContent = algo;
+            document.getElementById('status').textContent = result.solved ? '✓ Solved' : '✗ Unsolved';
+        }
+
+        function displayComparison(results) {
+            const tableBody = document.getElementById('comparisonTableBody');
+            const chartArea = document.getElementById('chartArea');
+            
+            tableBody.innerHTML = '';
+            chartArea.innerHTML = '';
+            
+            const algorithms = ['BFS', 'DFS', 'Dijkstra', 'AStar'];
+            const metrics = {
+                pathLength: { name: 'Path Length', values: [], lower: true },
+                totalCost: { name: 'Total Cost', values: [], lower: true },
+                visitedCount: { name: 'Cells Visited', values: [], lower: true },
+                timeTaken: { name: 'Time (ms)', values: [], lower: true }
+            };
+            
+            // Collect data and find winners
+            algorithms.forEach(algo => {
+                const result = results[algo];
+                if (result && result.solved) {
+                    metrics.pathLength.values.push({ algo, value: result.path.length });
+                    metrics.totalCost.values.push({ algo, value: result.totalCost });
+                    metrics.visitedCount.values.push({ algo, value: result.visited_order.length });
+                    metrics.timeTaken.values.push({ algo, value: parseFloat(result.timeTaken) });
+                }
+            });
+            
+            // Find winners for each metric
+            const winners = {};
+            Object.keys(metrics).forEach(key => {
+                const values = metrics[key].values;
+                if (values.length > 0) {
+                    const sorted = [...values].sort((a, b) => a.value - b.value);
+                    winners[key] = sorted[0].algo;
+                }
+            });
+            
+            // Build table
+            algorithms.forEach(algo => {
+                const result = results[algo];
+                const row = document.createElement('tr');
+                
+                const algoColors = {
+                    'BFS': 'rgba(52, 152, 219, 0.7)',
+                    'DFS': 'rgba(231, 76, 60, 0.7)',
+                    'Dijkstra': 'rgba(155, 89, 182, 0.7)',
+                    'AStar': 'rgba(46, 204, 113, 0.7)'
+                };
+                
+                if (result && result.solved) {
+                    row.innerHTML = `
+                        <td style="background: ${algoColors[algo]}; color: white; font-weight: bold;">${algo}</td>
+                        <td class="${winners.pathLength === algo ? 'winner' : ''}">${result.path.length} cells</td>
+                        <td class="${winners.totalCost === algo ? 'winner' : ''}">${result.totalCost} cost</td>
+                        <td class="${winners.visitedCount === algo ? 'winner' : ''}">${result.visited_order.length} cells</td>
+                        <td class="${winners.timeTaken === algo ? 'winner' : ''}">${result.timeTaken} ms</td>
+                        <td style="color: green; font-weight: bold;">✓ Solved</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td style="background: ${algoColors[algo]}; color: white; font-weight: bold;">${algo}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td style="color: red; font-weight: bold;">✗ No Solution</td>
+                    `;
+                }
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Build charts
+            Object.keys(metrics).forEach(key => {
+                const metric = metrics[key];
+                const maxValue = Math.max(...metric.values.map(v => v.value));
+                
+                const chartTitle = document.createElement('h4');
+                chartTitle.textContent = metric.name;
+                chartTitle.style.marginBottom = '10px';
+                chartTitle.style.color = '#333';
+                chartArea.appendChild(chartTitle);
+                
+                metric.values.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'chart-row';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'chart-label';
+                    label.textContent = item.algo;
+                    
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'chart-bar-container';
+                    
+                    const bar = document.createElement('div');
+                    bar.className = `chart-bar ${item.algo.toLowerCase()}`;
+                    const percentage = (item.value / maxValue) * 100;
+                    bar.style.width = percentage + '%';
+                    bar.textContent = item.value;
+                    
+                    if (winners[key] === item.algo) {
+                        bar.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.8)';
+                        bar.style.border = '2px solid gold';
+                    }
+                    
+                    barContainer.appendChild(bar);
+                    row.appendChild(label);
+                    row.appendChild(barContainer);
+                    chartArea.appendChild(row);
+                });
+                
+                const separator = document.createElement('div');
+                separator.style.marginBottom = '20px';
+                chartArea.appendChild(separator);
+            });
+            
+            document.getElementById('algoSwitcher').style.display = 'flex';
+            document.getElementById('comparisonSection').style.display = 'block';
+            
+            // Smooth scroll to switcher buttons
+            setTimeout(() => {
+                document.getElementById('algoSwitcher').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 100);
+        }
+
+        // Keyboard shortcuts for algorithm switching
+        document.addEventListener('keydown', (e) => {
+            if (!comparisonResults || Object.keys(comparisonResults).length === 0) return;
+            
+            const key = e.key.toLowerCase();
+            if (key === '1' || key === 'b') switchAlgorithm('BFS');
+            else if (key === '2' || key === 'd') switchAlgorithm('DFS');
+            else if (key === '3' || key === 'j') switchAlgorithm('Dijkstra');
+            else if (key === '4' || key === 'a') switchAlgorithm('AStar');
+        });
+
+        // Initialize grid on load
+        createGrid();
+    </script>
+</body>
+</html>
